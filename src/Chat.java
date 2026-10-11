@@ -1,8 +1,10 @@
 // Класс-контейнер
-// Хранит сообщения во внутреннем массиве, который наружу не отдаёт
+// Связь с Message - композиция: сообщение создаётся специально для этого
+// чата (другой код его не хранит и не использует параллельно), и если бы
+// чат уничтожили, все его сообщения ушли бы вместе с ним
 public class Chat {
 
-    private Message[] messages;
+    private Message[] messages; // хранилище закрыто
     private int count;          // сколько мест реально занято
 
     public Chat(int capacity) {
@@ -10,7 +12,6 @@ public class Chat {
         count = 0;
     }
 
-    // Добавить сообщение в чат
     public void add(Message message) {
         if (count >= messages.length) {
             throw new IllegalStateException("В чате нет свободного места для нового сообщения");
@@ -19,7 +20,6 @@ public class Chat {
         count++;
     }
 
-    // Пометить сообщение прочитанным по номеру
     public boolean markAsRead(int number) {
         for (int i = 0; i < count; i++) {
             if (messages[i].getNumber() == number) {
@@ -40,13 +40,14 @@ public class Chat {
         return result;
     }
 
-    // Поиск сообщений по фрагменту текста
+    // Поиск работает через getPreview() общий для всех разновидностей
+    // метод, объявленный в Message. Chat ни разу не спрашивает, с каким именно наследником работает
     public Message[] findByTextFragment(String fragment) {
         Message[] buffer = new Message[count];
         int found = 0;
 
         for (int i = 0; i < count; i++) {
-            if (messages[i].getText().contains(fragment)) {
+            if (messages[i].getPreview().contains(fragment)) {
                 buffer[found] = messages[i];
                 found++;
             }
@@ -59,7 +60,6 @@ public class Chat {
         return result;
     }
 
-    // Последние N сообщений
     public Message[] getLastN(int n) {
         int howMany = Math.min(n, count);
         Message[] result = new Message[howMany];
@@ -68,5 +68,12 @@ public class Chat {
             result[i] = messages[count - howMany + i];
         }
         return result;
+    }
+
+    // Печать всех сообщений одним циклом, без единой проверки типа
+    public void printAll() {
+        for (int i = 0; i < count; i++) {
+            System.out.println(messages[i]);
+        }
     }
 }
